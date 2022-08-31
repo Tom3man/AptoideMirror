@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <title>Aptoide Mirror</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    </head>
+    <body>
+        <div id="calc-container">
+            
+            <form action="{{ url_for('index') }}" method="POST">
+
+                 <label>Enter URL:</label>
+                 <input type="text" name="hr">
+
+                 <input type="submit" name="next" value="Next">
+              </form>
+
+
+            </form>
+
+            <br><br>
+            {% if app_dict %}
+            <h2>Results</h2>
+
+
+
+            <h3>App Name</h3>
+            <p>{{ app_dict.app_name }}</p>
+
+            <h3>App Version</h3>
+            <p>{{ app_dict.app_version }}</p>
+
+            <h3>App Downloads</h3>
+            <p>{{ app_dict.app_downloads }}</p>
+
+            <h3>App Description</h3>
+            <p>{{ app_dict.app_description }}</p>
+
+            <h3>Release Date</h3>
+            <p>{{ app_dict.app_release_date }}</p>
+
+            <br>
+            {% endif %} 
+
+        </div>
+
+
+    </body>
+</html>
