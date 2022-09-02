@@ -1,4 +1,13 @@
-from .common import webscraping_tools
+import os
+import sys
+import inspect
+from pathlib import Path
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+repo_dir = os.path.dirname(Path(currentdir).parent.absolute())
+sys.path.insert(0, repo_dir) 
+
+from aptoide_mirror.scrapers.common import webscraping_tools
 
 import time
 import string
@@ -25,15 +34,16 @@ class ScrapeAppPage:
 
     """
 
-    def __init__(self, log=True):
+    def __init__(self, url: str, log=True):
 
         self.log = log
+        self.url = url
 
-    def extract(self, url: str):
+        self.extract()
+
+    def extract(self):
 
         extracted_dict = None
-
-        self.url = url
 
         # Extract the raw page HTML and parse with bs4
         if self.log:
@@ -58,7 +68,7 @@ class ScrapeAppPage:
         self._stats_div_container(div_name='mini-stats__Row-sc-188veh1-2 kSzdYC')
         self._description_container(div_name='description__Paragraph-sc-45j1b1-1 daWyZe')
 
-        extracted_dict = {
+        self.extracted_dict = {
             'app_name': self.app_name,
             'app_version': self.app_version,
             'app_downloads': self.app_downloads,
@@ -66,8 +76,6 @@ class ScrapeAppPage:
             'app_release_date': self.app_release_date,
             'app_requirements': self.app_requirements
         }
-
-        return extracted_dict
 
     @staticmethod
     def _check_response(div_name: str, method: object):
@@ -109,12 +117,18 @@ class ScrapeAppPage:
     def app_release_date(self) -> str:
 
         version_raw = self.app_version_container.find_all('div')[1].text
+        date_string = ''.join(char for char in version_raw if char in string.digits + "-")
 
-        return ''.join(char for char in version_raw if char in string.digits + "-")
+        return date_string
 
     @property
     def app_downloads(self) -> str:
-        return self.stats_container.find_all('div')[0].text.split(' ')[0]
+
+        downloads = self.stats_container.find_all('div')[0].text.split(' ')[0]
+
+        downloads = ''.join(char for char in downloads if char in string.digits)
+
+        return int(downloads)
 
     @property
     def app_size(self) -> str:
