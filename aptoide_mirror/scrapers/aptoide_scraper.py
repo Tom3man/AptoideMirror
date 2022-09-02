@@ -1,3 +1,5 @@
+from .common import webscraping_tools
+
 import time
 import string
 from bs4 import BeautifulSoup
@@ -5,31 +7,31 @@ from bs4 import BeautifulSoup
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
 
-from .common import webscraping_tools
-
 
 class ScrapeAppPage:
 
     """
-    This class is used to extract app information from the aptoide website when given a specific url string for an application. 
-    It compiles the relevant information as property methods. 
+    This class is used to extract app information from the aptoide website when given a specific url string for an application.
+    It compiles the relevant information as property methods that can then be returned as a dictionary collectively.
+
     After initial compiling, running the extract method will return the following in string format:
+
         - app name
         - app version
         - version release date
-        - number of downloads 
+        - number of downloads
         - app description
         - app requirements for android devices
 
     """
 
-    def __init__(self, log=False):
+    def __init__(self, log=True):
 
         self.log = log
 
     def extract(self, url: str):
 
-        extracted_dict = {}
+        extracted_dict = None
 
         self.url = url
 
@@ -42,20 +44,26 @@ class ScrapeAppPage:
             if self.log:
                 time.sleep(1)
                 logging.info(f"Raw page info for {self.url} successfully extracted.")
-        except: 
-            raise ValueError("Supplied URL returned no response")
 
+        except ValueError as url_error:
+
+            # If url returns no response then return none
+            logging.error(f"Supplied URL returned no response: {url_error}")
+
+            return extracted_dict
+
+        # Risk here using div names as this may change website server-side
         self._extract_main_div_html(div_name='header-desktop__HeaderContainer-xc5gow-0 eBfMrO')
         self._app_version_div_container(div_name='mini-versions__Version-sc-19sko2j-4 ikysfs')
         self._stats_div_container(div_name='mini-stats__Row-sc-188veh1-2 kSzdYC')
         self._description_container(div_name='description__Paragraph-sc-45j1b1-1 daWyZe')
 
         extracted_dict = {
-            'app_name': self.app_name, 
-            'app_version': self.app_version, 
-            'app_downloads': self.app_downloads, 
-            'app_description': self.app_description, 
-            'app_release_date': self.app_release_date, 
+            'app_name': self.app_name,
+            'app_version': self.app_version,
+            'app_downloads': self.app_downloads,
+            'app_description': self.app_description,
+            'app_release_date': self.app_release_date,
             'app_requirements': self.app_requirements
         }
 
@@ -71,8 +79,6 @@ class ScrapeAppPage:
 
     def _extract_main_div_html(self, div_name: str):
 
-        # Filter the raw HTML to include just the main div container
-        # Risk here using div name as this may change server-side
         self.div_container_main_html = self.app_page.find('div', {'class': div_name})
         self._check_response(div_name=div_name, method=self.div_container_main_html)
 
@@ -101,7 +107,10 @@ class ScrapeAppPage:
 
     @property
     def app_release_date(self) -> str:
-        return ''.join(char for char in self.app_version_container.find_all('div')[1].text if char in string.digits + "-")
+
+        version_raw = self.app_version_container.find_all('div')[1].text
+
+        return ''.join(char for char in version_raw if char in string.digits + "-")
 
     @property
     def app_downloads(self) -> str:
